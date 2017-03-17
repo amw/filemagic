@@ -53,5 +53,5 @@ def str_return(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         value = func(*args, **kwargs)
-        return value.decode()
+        return value.decode(errors='replace')
     return wrapper
