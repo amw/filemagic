@@ -9,22 +9,29 @@ import ctypes
 import platform
 import warnings
 
-libname = ctypes.util.find_library('magic') or ctypes.util.find_library('magic1')
-if not libname:
-    if platform.system() == 'SunOS':
-        libname = 'libmagic.so'
-        warnings.warn("ctypes.util.find_library does not function as "
-                      "expected on Solaris; manually setting libname to {0}. "
-                      "If import fails, verify that libmagic is installed "
-                      "to a directory registered with crle. ".format(libname),
-                      ImportWarning)
-    else:
+
+COMMON_LIBNAME_CANDIDATES = (
+    'libmagic.so.1',
+    'libmagic.so',
+    'libmagic.dylib',
+)
+
+for libname in COMMON_LIBNAME_CANDIDATES:
+    try:
+        lib = ctypes.CDLL(libname)
+        break
+    except Exception:
+        pass
+
+if not lib:
+    libname = ctypes.util.find_library('magic') or ctypes.util.find_library('magic1')
+    if not libname:
         raise ImportError('Unable to find magic library')
 
-try:
-    lib = ctypes.CDLL(libname)
-except Exception:
-    raise ImportError('Loading {0} failed'.format(libname))
+    try:
+        lib = ctypes.CDLL(libname)
+    except Exception:
+        raise ImportError('Loading {0} failed'.format(libname))
 
 
 # magic_t type
